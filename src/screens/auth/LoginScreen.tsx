@@ -16,22 +16,20 @@ export default function LoginScreen({ navigation }: any) {
 
     setLoading(true);
     try {
-      // Asumiendo que tu backend acepta email o username en el mismo campo
       const { token } = await login(emailOrUsername, password);
-
-      if (!token) {
-        Alert.alert('Error', 'No se recibió token de autenticación');
-        setLoading(false);
-        return;
-      }
+      if (!token) throw new Error('Token no recibido');
 
       await authStorage.storeToken(token);
-      Alert.alert('Éxito', 'Login exitoso');
 
-      // Navega a Home o pantalla principal
-      navigation.replace('Home');
+      const role = await authStorage.getUserRole();
+
+      if (role === 'ROLE_ADMIN') {
+        navigation.replace('AdminHome');
+      } else {
+        navigation.replace('UserHome');
+      }
+
     } catch (error: any) {
-      // error.message u otro mensaje que venga del backend
       Alert.alert('Error al iniciar sesión', error?.message || 'Revisa tus credenciales');
     } finally {
       setLoading(false);
@@ -48,7 +46,6 @@ export default function LoginScreen({ navigation }: any) {
         onChangeText={setEmailOrUsername}
         style={styles.input}
         autoCapitalize="none"
-        keyboardType="email-address"
       />
 
       <TextInput

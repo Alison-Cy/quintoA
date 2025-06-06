@@ -1,25 +1,26 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, Text, StyleSheet, Alert } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { register } from '../../api/authApi';
 
 export default function RegisterScreen({ navigation }: any) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('USER'); // por defecto
+
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!username || !email || !password) {
-      Alert.alert('Error', 'Por favor completa todos los campos');
+    if (!username || !email || !password || !role) {
+      Alert.alert('Error', 'Completa todos los campos');
       return;
     }
 
     setLoading(true);
     try {
-      const response = await register(username, email, password);
-
-      // Si register lanza error, se captura en catch
-      Alert.alert('Éxito', 'Usuario registrado. Por favor, inicia sesión.');
+      await register(username, email, password, role.toUpperCase());
+      Alert.alert('Éxito', 'Usuario registrado. Inicia sesión.');
       navigation.navigate('Login');
     } catch (error: any) {
       Alert.alert('Error al registrarse', error?.message || 'Inténtalo de nuevo');
@@ -57,6 +58,16 @@ export default function RegisterScreen({ navigation }: any) {
         secureTextEntry
       />
 
+      <Text style={{ marginBottom: 5, fontWeight: 'bold' }}>Selecciona el rol:</Text>
+      <Picker
+        selectedValue={role}
+        onValueChange={(itemValue) => setRole(itemValue)}
+        style={styles.picker}
+      >
+        <Picker.Item label="Usuario (USER)" value="USER" />
+        <Picker.Item label="Administrador (ADMIN)" value="ADMIN" />
+      </Picker>
+
       <Button
         title={loading ? 'Cargando...' : 'Registrarse'}
         onPress={handleRegister}
@@ -76,5 +87,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingHorizontal: 10,
     borderRadius: 4,
+  },
+  picker: {
+    height: 50,
+    marginBottom: 20,
   },
 });
